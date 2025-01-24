@@ -26,7 +26,7 @@ public class Pipeline
     {
         if (_program == null)
         {
-            if(_vertexShaderSource == null || _fragmentShaderSource == null)
+            if (_vertexShaderSource == null || _fragmentShaderSource == null)
                 throw new InvalidOperationException("Shader sources not set.");
             try
             {
@@ -56,6 +56,8 @@ public class Pipeline
             uniform.Upload(_program.Value);
         GL.DrawArrays(PrimitiveType, DrawStart, DrawCount);
     }
+    
+    #region Shader
 
     private int CompileShader(ShaderType type, string source)
     {
@@ -121,6 +123,10 @@ public class Pipeline
         _fragmentShaderSource = fragmentShaderSource;
         _program = null;
     }
+    
+    #endregion
+    
+    #region Attributes
 
     public Attribute Attribute(
         string name,
@@ -161,11 +167,10 @@ public class Pipeline
 
     public void UpdateAttribute(string name, float[] data) =>
         _attributes[name].Update(data);
-
-    // public void Uniform(string name, int value) =>
-    //     _uniforms[name] = new UniformInt { Name = name, Value = value };
-    // public void Uniform(string name, double value) =>
-    //     _uniforms[name] = new UniformDouble { Name = name, Value = value };
+    
+    #endregion
+    
+    #region Uniforms
 
     public void Uniform(string name, float value) =>
         _uniforms[name] = new UniformFloat { Name = name, Value = value };
@@ -189,211 +194,6 @@ public class Pipeline
 
     public void Uniform(string name, Matrix3 value) =>
         _uniforms[name] = new UniformMatrix3 { Name = name, Value = value };
-}
 
-abstract class Uniform
-{
-    public required string Name { get; init; }
-    public abstract void Upload(int program);
-
-    protected bool TryGetUniformLocation(int program, out int location)
-    {
-        location = GL.GetUniformLocation(program, Name);
-        if (location == -1)
-            Warnings.WriteOnce($"Uniform '{Name}' not found in shader.");
-        return location != -1;
-    }
-}
-
-class UniformFloat : Uniform
-{
-    public float Value { get; init; }
-
-    public override void Upload(int program)
-    {
-        if (TryGetUniformLocation(program, out var location))
-            GL.Uniform1(location, Value);
-    }
-}
-
-// class UniformDouble : Uniform
-// {
-//     public double Value { get; init; }
-//
-//     public override void Upload(int program)
-//     {
-//         if (TryGetUniformLocation(program, out var location))
-//             GL.Uniform1(location, Value);
-//     }
-// }
-//
-// class UniformInt : Uniform
-// {
-//     public int Value { get; init; }
-//
-//     public override void Upload(int program)
-//     {
-//         if (TryGetUniformLocation(program, out var location))
-//             GL.Uniform1(location, Value);
-//     }
-// }
-
-class UniformVector2 : Uniform
-{
-    public Vector2 Value { get; init; }
-
-    public override void Upload(int program)
-    {
-        if (TryGetUniformLocation(program, out var location))
-            GL.Uniform2(location, Value.X, Value.Y);
-    }
-}
-
-class UniformVector3 : Uniform
-{
-    public Vector3 Value { get; init; }
-
-    public override void Upload(int program)
-    {
-        if (TryGetUniformLocation(program, out var location))
-            GL.Uniform3(location, Value.X, Value.Y, Value.Z);
-    }
-}
-
-class UniformVector4 : Uniform
-{
-    public Vector4 Value { get; init; }
-
-    public override void Upload(int program)
-    {
-        if (TryGetUniformLocation(program, out var location))
-            GL.Uniform4(location, Value.X, Value.Y, Value.Z, Value.W);
-    }
-}
-
-class UniformMatrix2 : Uniform
-{
-    public Matrix2 Value { get; init; }
-
-    public override void Upload(int program)
-    {
-        if (TryGetUniformLocation(program, out var location))
-        {
-            var matrix2 = Value;
-            GL.UniformMatrix2(location, false, ref matrix2);
-        }
-    }
-}
-
-class UniformMatrix3 : Uniform
-{
-    public Matrix3 Value { get; init; }
-
-    public override void Upload(int program)
-    {
-        if (TryGetUniformLocation(program, out var location))
-        {
-            var matrix3 = Value;
-            GL.UniformMatrix3(location, false, ref matrix3);
-        }
-    }
-}
-
-public class Attribute
-{
-    public required string Name { get; init; }
-    public int Vbo { get; init; }
-    public int? Size { get; init; }
-    public VertexAttribPointerType? Type { get; init; }
-    public bool Normalized { get; init; }
-    public int Stride { get; init; }
-    public int Offset { get; init; }
-
-    public void Bind(int program, int vao)
-    {
-        var location = GL.GetAttribLocation(program, Name);
-        GL.BindVertexArray(vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-        GetAttributeInfo(program, location, out var reflectedSize, out var reflectedType);
-        GL.VertexAttribPointer(location, Size ?? reflectedSize, Type ?? reflectedType, Normalized, Stride, Offset);
-        GL.EnableVertexAttribArray(location);
-    }
-
-    public void Update(float[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
-    {
-        GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, usage);
-    }
-
-    static void GetAttributeInfo(int program, int location, out int size, out VertexAttribPointerType type)
-    {
-        GL.GetActiveAttrib(program, location, out _, out var attributeType);
-        switch (attributeType)
-        {
-            case ActiveAttribType.Float:
-                size = 1;
-                type = VertexAttribPointerType.Float;
-                break;
-            case ActiveAttribType.FloatVec2:
-                size = 2;
-                type = VertexAttribPointerType.Float;
-                break;
-            case ActiveAttribType.FloatVec3:
-                size = 3;
-                type = VertexAttribPointerType.Float;
-                break;
-            case ActiveAttribType.FloatVec4:
-                size = 4;
-                type = VertexAttribPointerType.Float;
-                break;
-            case ActiveAttribType.Int:
-                size = 1;
-                type = VertexAttribPointerType.Int;
-                break;
-            case ActiveAttribType.IntVec2:
-                size = 2;
-                type = VertexAttribPointerType.Int;
-                break;
-            case ActiveAttribType.IntVec3:
-                size = 3;
-                type = VertexAttribPointerType.Int;
-                break;
-            case ActiveAttribType.IntVec4:
-                size = 4;
-                type = VertexAttribPointerType.Int;
-                break;
-            case ActiveAttribType.Double:
-                size = 1;
-                type = VertexAttribPointerType.Double;
-                break;
-            case ActiveAttribType.DoubleVec2:
-                size = 2;
-                type = VertexAttribPointerType.Double;
-                break;
-            case ActiveAttribType.DoubleVec3:
-                size = 3;
-                type = VertexAttribPointerType.Double;
-                break;
-            case ActiveAttribType.DoubleVec4:
-                size = 4;
-                type = VertexAttribPointerType.Double;
-                break;
-            default:
-                throw new InvalidOperationException($"Attribute type '{attributeType}' not supported.");
-        }
-    }
-}
-
-public static class Warnings
-{
-    private static readonly HashSet<string> Messages = [];
-
-    public static void WriteOnce(string message)
-    {
-        if (Messages.Add(message))
-            Console.WriteLine(message);
-    }
-
-    public static void ClearCache() => 
-        Messages.Clear();
+    #endregion
 }
