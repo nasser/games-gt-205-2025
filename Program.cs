@@ -4,31 +4,23 @@ using pixel_lab;
 
 var w = new Window();
 
-float[] vertices =
-[
-    -0.99f, -0.99f, 0.0f,
-    0.99f, -0.99f, 0.0f,
-    0.0f, 0.99f, 0.0f
-];
+float[] vertices = [-1, -1, 1, -1, 0, 0];
+float[] colors = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
 var p = new Pipeline();
 
 p.ShaderFiles("vertex.glsl", "fragment.glsl");
 
-p.Attribute("aPosition", vertices);
+p.Attribute("position", vertices, size: 2);
+p.Attribute("color", colors, size: 3);
 
 p.PrimitiveType = PrimitiveType.Triangles;
 p.DrawCount = 3;
+p.Resolution = new Vector2i(16, 16);
 
-w.OnRender(t =>
-{
-    // Console.WriteLine($"{w.Location} {w.ClientSize}");
+w.Render += t => {
     p.Uniform("time", t);
-    p.Uniform("resolution", new Vector2(w.ClientSize.X, w.ClientSize.Y));
     p.Draw();
-});
+};
 
-// TODO load gltf
-// TODO load textures
-// TODO render to texture
-// TODO control resolution
+w.Run();

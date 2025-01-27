@@ -8,15 +8,12 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <DefaultItemExcludes>$(DefaultItemExcludes);past\**</DefaultItemExcludes>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="OpenTK" Version="4.9.3" />
       <PackageReference Include="SharpGLTF.Core" Version="1.0.3" />
     </ItemGroup>
-
-    <ItemGroup>
-      <None Update="DamagedHelmet.glb">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
 </Project>

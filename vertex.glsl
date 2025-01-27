@@ -1,8 +1,9 @@
 #version 330 core
-in vec3 aPosition;
-uniform float time;
+in vec3 color;
+in vec2 position;
+out vec3 vertColor;
 
-void main()
-{
-    gl_Position = vec4(aPosition / 1.0 * sin(time), 1.0);
+void main() {
+    gl_Position = vec4(position, 0.0, 1.0);
+    vertColor = color;
 }

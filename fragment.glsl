@@ -1,9 +1,8 @@
 #version 330 core
-out vec4 FragColor;
-uniform vec2 resolution;
+in vec3 vertColor;
 uniform float time;
+out vec4 FragColor;
 
-void main()
-{
-    FragColor = vec4(gl_FragCoord.xy / resolution, 1.0 * sin(time * 5.0), 1.0f);
+void main() {
+    FragColor = vec4(vertColor * abs(sin(time)), 1.0);
 }

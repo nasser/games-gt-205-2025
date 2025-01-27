@@ -8,17 +8,13 @@ namespace pixel_lab;
 
 public class Window : GameWindow
 {
-    private Action<float>? _renderCallback;
+    public static Window Instance { get; private set; } = null!;
+    public event Action<float>? Render;
     float _elapsed;
 
     public Window() : base(new(), new())
     {
-    }
-
-    public void OnRender(Action<float>? renderCallback = null)
-    {
-        this._renderCallback = renderCallback;
-        base.Run();
+        Instance = this;
     }
 
     public void ClearColor(Color color)
@@ -36,7 +32,7 @@ public class Window : GameWindow
         base.OnRenderFrame(args);
         _elapsed += (float)args.Time;
         GL.Clear(ClearBufferMask.ColorBufferBit);
-        _renderCallback?.Invoke(_elapsed);
+        Render?.Invoke(_elapsed);
         SwapBuffers();
     }
 

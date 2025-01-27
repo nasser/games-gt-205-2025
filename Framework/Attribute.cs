@@ -15,11 +15,20 @@ public class Attribute
     public void Bind(int program, int vao)
     {
         var location = GL.GetAttribLocation(program, Name);
+        if(location == -1)
+            Warnings.WriteOnce($"Attribute '{Name}' not found in shader.");
         GL.BindVertexArray(vao);
         GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-        GetAttributeInfo(program, location, out var reflectedSize, out var reflectedType);
-        GL.VertexAttribPointer(location, Size ?? reflectedSize, Type ?? reflectedType, Normalized, Stride, Offset);
-        GL.EnableVertexAttribArray(location);
+        try
+        {
+            GetAttributeInfo(program, location, out var reflectedSize, out var reflectedType);
+            GL.VertexAttribPointer(location, Size ?? reflectedSize, Type ?? reflectedType, Normalized, Stride, Offset);
+            GL.EnableVertexAttribArray(location);
+        }
+        catch (InvalidOperationException e)
+        {
+            Warnings.WriteOnce($"Coud not determine attribute '{Name}' type. Make sure it's being used in the shader, otherwise it might get stripped out. You can also specify the type manually.");
+        }
     }
 
     public void Update(float[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
@@ -82,7 +91,7 @@ public class Attribute
                 type = VertexAttribPointerType.Double;
                 break;
             default:
-                throw new InvalidOperationException($"Attribute type '{attributeType}' not supported.");
+                throw new InvalidOperationException($"Could not determine type of attribute '{attributeType}' not supported.");
         }
     }
 }
