@@ -1,8 +1,20 @@
 #version 330 core
-in vec3 vertColor;
 uniform float time;
 out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(vertColor * abs(sin(time)), 1.0);
+    float radius = 100.0;
+    
+    // gl_FragCoord is the built-in OpenGL variable that stores the coordinate of the fragment in screen space 
+    vec2 position = gl_FragCoord.xy;
+
+    // length is a built-in function that returns the length of a vector
+    float distance = length(position);
+
+    // if the distance is greater than the radius, set the color to yellow, otherwise set it to red
+    if(distance > radius) {
+        FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+    } else {
+        FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
 }
