@@ -27,6 +27,29 @@ class UniformFloat : Uniform
             GL.Uniform1(location, Value);
     }
 }
+class UniformTexture : Uniform
+{
+    private static readonly Dictionary<int, int> TextureUnitBindingPool = new();
+    
+    public static void ResetTextureUnitBindings() => TextureUnitBindingPool.Clear();
+    public int Value { get; init; }
+
+    public override void Upload(int program)
+    {
+        if (TryGetUniformLocation(program, out var location))
+        {
+            if (!TextureUnitBindingPool.TryGetValue(Value, out var textureUnit))
+            {
+                textureUnit = TextureUnitBindingPool.Count;
+                TextureUnitBindingPool.Add(Value, textureUnit);
+            }
+            
+            GL.ActiveTexture(TextureUnit.Texture0 + textureUnit);
+            GL.BindTexture(TextureTarget.Texture2D, Value);
+            GL.Uniform1(location, textureUnit);
+        }
+    }
+}
 
 // class UniformDouble : Uniform
 // {
