@@ -21,6 +21,11 @@ p.PrimitiveType = PrimitiveType.Triangles;
 p.DrawCount = vertices.Length / 2;
 // p.Resolution = new Vector2i(16, 16);
 
-w.Render += t => { p.Draw(); };
+w.Render += t =>
+{
+    p.Uniform("time", t);
+    p.Uniform("resolution", w.ClientSize);
+    p.Draw();
+};
 
 w.Run();
