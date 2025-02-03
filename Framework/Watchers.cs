@@ -8,7 +8,7 @@ public static class Watchers
 
     public static void Watch(string filePath, Action<FileSystemEventArgs> callback)
     {
-        filePath = FindFild(filePath);
+        filePath = FindFile(filePath);
         if (!_watchers.TryGetValue(filePath, out var watcher))
         {
             var directoryName = Path.GetDirectoryName(filePath);
@@ -22,7 +22,7 @@ public static class Watchers
         }
     }
 
-    public static string FindFild(string file)
+    public static string FindFile(string file)
     {
         var dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         while (true)
