@@ -7,6 +7,7 @@ var w = new Window();
 
 List<float> positions = [];
 List<float> colorFactors = [];
+List<float> edgeFactors = [];
 
 var p = new Pipeline();
 
@@ -14,6 +15,7 @@ p.ShaderFiles("vertex.glsl", "fragment.glsl");
 
 p.Attribute("position", positions.ToArray(), size: 2);
 p.Attribute("colorFactor", colorFactors.ToArray(), size: 1);
+p.Attribute("edgeFactor", edgeFactors.ToArray(), size: 1);
 
 p.PrimitiveType = PrimitiveType.TriangleStrip;
 p.DrawCount = positions.Count / 2;
@@ -81,14 +83,19 @@ w.Render += t =>
         positions.Add(a.Y);
         positions.Add(b.X);
         positions.Add(b.Y);
+        edgeFactors.Add(0f);
+        edgeFactors.Add(1f);
 
         if (positions.Count / 2 >= maxTrailLength)
         {
             positions.RemoveRange(0, 4);
+            edgeFactors.RemoveRange(0, 2);
         }
 
         // update the existing attribute with new data
         p.UpdateAttribute("position", positions.ToArray());
+        p.UpdateAttribute("edgeFactor", edgeFactors.ToArray());
+        
 
         colorFactors.Clear();
         for (int i = 0; i < positions.Count / 2; i++) 
@@ -99,6 +106,8 @@ w.Render += t =>
         // update the draw count to tell the GPU to use the new values we just uploaded. we only need to do this if the
         // size of the data changes.
         p.DrawCount = positions.Count / 2;
+        
+        Console.WriteLine($"positions: {positions.Count}, edgeFactors: {edgeFactors.Count}, colorFactors: {colorFactors.Count}, drawCount: {p.DrawCount}");
 
         // only update 'lastMousePosition' if we register a new vertex 
         lastMousePosition = currentMousePosition;
