@@ -39,6 +39,8 @@ var maxTrailLength = 100;
 
 w.Render += t =>
 {
+    p.Uniform("time", t);
+    
     // get the offset and distance in pixels first, so we can see if we moved far enough to register a new vertex
     var currentMousePosition = w.MousePosition;
     var pixelOffset = currentMousePosition - lastMousePosition;
