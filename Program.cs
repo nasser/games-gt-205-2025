@@ -1,16 +1,19 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using System.Drawing;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using pixel_lab;
 
 var w = new Window();
 
 List<float> positions = [];
+List<float> colors = [];
 
 var p = new Pipeline();
 
 p.ShaderFiles("vertex.glsl", "fragment.glsl");
 
 p.Attribute("position", positions.ToArray(), size: 2);
+p.Attribute("color", colors.ToArray(), size: 3);
 
 p.PrimitiveType = PrimitiveType.TriangleStrip;
 p.DrawCount = positions.Count / 2;
@@ -26,17 +29,20 @@ const float widthNdc = 0.05f;
 // infinitely thin and will cause problems. 
 const int minimumDistancePixels = 8;
 
+var fromColor = new Vector3(1f, 0f, 0f);
+var toColor = new Vector3(0f, 1f, 0f);
+
 w.Render += t =>
 {
     // get the offset and distance in pixels first, so we can see if we moved far enough to register a new vertex
     var currentMousePosition = w.MousePosition;
     var pixelOffset = currentMousePosition - lastMousePosition;
     var pixelDistance = pixelOffset.Length;
-    
+
     if (pixelDistance > minimumDistancePixels)
     {
         // yes -- we've moved at least minimumDistancePixels since the last vertex, time to register a new one!
-        
+
         // calculate the current and previous mouse coordinates in NDC (the function is at the bottom of the file, same
         // as it was in class)
         var currentMousePositionNdc = ScreenPositionToNdc(currentMousePosition, w);
@@ -51,12 +57,12 @@ w.Render += t =>
         // in 2D a simple trick to get a 90-degree "rotation" of a vector is to negate one of its components. 3D
         // requires different approaches! keep in mind that there are always two 90-degree rotations of a vector, to the
         // "left" and to the "right"
-        
+
         // direction to the 'a' point, a 90-degree rotation of the direction vector
         var directionToA = new Vector2(directionNdc.Y, -directionNdc.X);
         // direction to the 'b' point, a 90-degree rotation of the direction vector in the opposite direction
         var directionToB = new Vector2(-directionNdc.Y, directionNdc.X);
-        
+
         // the actual 'a' point we care about, calculated by starting at currentMousePositionNdc and "moving" along directionToA a distance of widthNdc  
         var a = currentMousePositionNdc + directionToA * widthNdc;
         // the actual 'b' point we care about, calculated by starting at currentMousePositionNdc and "moving" along directionToB a distance of widthNdc
@@ -70,14 +76,26 @@ w.Render += t =>
 
         // update the existing attribute with new data
         p.UpdateAttribute("position", positions.ToArray());
+
+        colors.Clear();
+        for (int i = 0; i < positions.Count / 2; i++)
+        {
+            var p = i / (positions.Count / 2f);
+            colors.Add(fromColor.X * p + toColor.X * (1 - p));
+            colors.Add(fromColor.Y * p + toColor.Y * (1 - p));
+            colors.Add(fromColor.Z * p + toColor.Z * (1 - p));
+        }
+
+        p.UpdateAttribute("color", colors.ToArray());
+
         // update the draw count to tell the GPU to use the new values we just uploaded. we only need to do this if the
         // size of the data changes.
         p.DrawCount = positions.Count / 2;
-        
+
         // only update 'lastMousePosition' if we register a new vertex 
         lastMousePosition = currentMousePosition;
     }
-    
+
     // always draw, even if the mouse hasn't moved far enough to register a new vertex
     p.Draw();
 };
