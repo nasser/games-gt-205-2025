@@ -42,7 +42,8 @@ w.Render += t =>
     p.Uniform("time", t);
     
     // get the offset and distance in pixels first, so we can see if we moved far enough to register a new vertex
-    var currentMousePosition = w.MousePosition;
+    // var currentMousePosition = w.MousePosition;
+    var currentMousePosition = Vector2.Lerp(w.MousePosition, lastMousePosition, 0.755f);
     var pixelOffset = currentMousePosition - lastMousePosition;
     var pixelDistance = pixelOffset.Length;
 
@@ -69,7 +70,7 @@ w.Render += t =>
         var directionToA = new Vector2(directionNdc.Y, -directionNdc.X);
         // direction to the 'b' point, a 90-degree rotation of the direction vector in the opposite direction
         var directionToB = new Vector2(-directionNdc.Y, directionNdc.X);
-
+        
         // the actual 'a' point we care about, calculated by starting at currentMousePositionNdc and "moving" along directionToA a distance of widthNdc  
         var a = currentMousePositionNdc + directionToA * widthNdc;
         // the actual 'b' point we care about, calculated by starting at currentMousePositionNdc and "moving" along directionToB a distance of widthNdc
