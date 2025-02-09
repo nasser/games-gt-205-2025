@@ -34,6 +34,8 @@ public class Pipeline
 
     public int DrawCount { get; set; }
 
+    public int InstanceCount { get; set; } = 1;
+
     public void Draw()
     {
         Draw(Window.Instance.Fbo);
@@ -82,7 +84,7 @@ public class Pipeline
          
         GL.BlendFunc(BlendingFunction.SourceFactor, BlendingFunction.DestinationFactor);
 
-        GL.DrawArrays(PrimitiveType, DrawStart, DrawCount);
+        GL.DrawArraysInstanced(PrimitiveType, DrawStart, DrawCount, InstanceCount);
     }
 
     public static int Texture(string path,
@@ -149,9 +151,10 @@ public class Pipeline
         bool normalized = false,
         int stride = 0,
         int offset = 0,
+        int divisor = 0,
         BufferUsageHint usage = BufferUsageHint.StaticDraw)
     {
-        var attribute = Attribute(name, GL.GenBuffer(), size, type, normalized, stride, offset);
+        var attribute = Attribute(name, GL.GenBuffer(), size, type, normalized, stride, offset, divisor);
         attribute.Update(data, usage);
         return attribute;
     }
@@ -163,7 +166,8 @@ public class Pipeline
         VertexAttribPointerType? type = VertexAttribPointerType.Float,
         bool normalized = false,
         int stride = 0,
-        int offset = 0)
+        int offset = 0,
+        int divisor = 0)
     {
         _attributes[name] = new Attribute
         {
@@ -173,7 +177,8 @@ public class Pipeline
             Type = type,
             Normalized = normalized,
             Stride = stride,
-            Offset = offset
+            Offset = offset,
+            Divisor = divisor
         };
         return _attributes[name];
     }

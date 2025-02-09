@@ -16,9 +16,10 @@ public class Window : GameWindow
     private int _screenProgram;
     private int _fboTexture;
     private Vector2i? _resolution;
+    public float? AspectRatio { get; set; }
 
     public int Fbo => _fbo;
-    
+
     public Vector2i Resolution
     {
         get => _resolution ?? ClientSize;
@@ -54,23 +55,54 @@ public class Window : GameWindow
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         Render?.Invoke(_elapsed);
         DrawToScreen();
         UniformTexture.ResetTextureUnitBindings();
         SwapBuffers();
     }
-    
+
     private void DrawToScreen()
     {
+        var windowWidth = Window.Instance.ClientSize.X;
+        var windowHeight = Window.Instance.ClientSize.Y;
+        var viewportWidth = windowWidth;
+        var viewportHeight = windowHeight;
+        var viewportX = 0;
+        var viewportY = 0;
+
+        if (AspectRatio.HasValue && AspectRatio.Value > 0)
+        {
+
+            if (windowWidth < windowHeight)
+            {
+                viewportWidth = windowWidth;
+                viewportHeight = (int)(viewportWidth / AspectRatio.Value);
+                viewportY = (windowHeight - viewportHeight) / 2; // Center vertically
+            }
+            else
+            {
+                viewportHeight = windowHeight;
+                viewportWidth = (int)(viewportHeight / AspectRatio.Value);
+                viewportX = (windowWidth - viewportWidth) / 2; // Center horizontally
+            }
+        }
+
+        // Bind default framebuffer (screen)
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        GL.Viewport(0, 0, Window.Instance.ClientSize.X, Window.Instance.ClientSize.Y);
+    
+        // Set viewport with adjusted aspect ratio
+        GL.Viewport(viewportX, viewportY, viewportWidth, viewportHeight);
+
+        // Render the screen quad
         GL.UseProgram(_screenProgram);
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, _fboTexture);
         GL.Uniform1(1, 0);
-        GL.Uniform2(0, (float)Instance.ClientSize.X, (float)Instance.ClientSize.Y);
+        GL.Uniform2(0, (float)windowWidth, (float)windowHeight);
         GL.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
     }
+
 
     private int InitializeScreenShader()
     {

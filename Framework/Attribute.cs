@@ -11,6 +11,7 @@ public class Attribute
     public bool Normalized { get; init; }
     public int Stride { get; init; }
     public int Offset { get; init; }
+    public int Divisor { get; init; }
 
     public void Bind(int program, int vao)
     {
