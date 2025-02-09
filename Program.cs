@@ -32,6 +32,8 @@ const int minimumDistancePixels = 8;
 var fromColor = new Vector3(1f, 0f, 0f);
 var toColor = new Vector3(0f, 1f, 0f);
 
+var maxTrailLength = 100;
+
 w.Render += t =>
 {
     // get the offset and distance in pixels first, so we can see if we moved far enough to register a new vertex
@@ -73,6 +75,11 @@ w.Render += t =>
         positions.Add(a.Y);
         positions.Add(b.X);
         positions.Add(b.Y);
+
+        if (positions.Count / 2 >= maxTrailLength)
+        {
+            positions.RemoveRange(0, 4);
+        }
 
         // update the existing attribute with new data
         p.UpdateAttribute("position", positions.ToArray());
