@@ -2,6 +2,7 @@
 in vec2 position;
 out vec4 color_out;
 out float edge_out;
+out float length_out;
 
 uniform vec3 fromColor;
 uniform vec3 toColor;
@@ -15,4 +16,5 @@ void main() {
     float t = pow(abs(mod(time + colorFactor, 1.0) - 0.5), 0.5);
     color_out = vec4(fromColor * t + toColor * (1.0 - t), colorFactor);
     edge_out = edgeFactor;
+    length_out = colorFactor;
 }
