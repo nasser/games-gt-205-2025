@@ -51,7 +51,9 @@ public class Window : GameWindow
     {
         base.OnRenderFrame(args);
         _elapsed += (float)args.Time;
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         Render?.Invoke(_elapsed);
         DrawToScreen();
         UniformTexture.ResetTextureUnitBindings();
