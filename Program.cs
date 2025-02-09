@@ -6,14 +6,14 @@ using pixel_lab;
 var w = new Window();
 
 List<float> positions = [];
-List<float> colors = [];
+List<float> colorFactors = [];
 
 var p = new Pipeline();
 
 p.ShaderFiles("vertex.glsl", "fragment.glsl");
 
 p.Attribute("position", positions.ToArray(), size: 2);
-p.Attribute("color", colors.ToArray(), size: 3);
+p.Attribute("colorFactor", colorFactors.ToArray(), size: 1);
 
 p.PrimitiveType = PrimitiveType.TriangleStrip;
 p.DrawCount = positions.Count / 2;
@@ -31,6 +31,9 @@ const int minimumDistancePixels = 8;
 
 var fromColor = new Vector3(1f, 0f, 0f);
 var toColor = new Vector3(0f, 1f, 0f);
+
+p.Uniform("fromColor", fromColor);
+p.Uniform("toColor", toColor);
 
 var maxTrailLength = 100;
 
@@ -84,16 +87,11 @@ w.Render += t =>
         // update the existing attribute with new data
         p.UpdateAttribute("position", positions.ToArray());
 
-        colors.Clear();
-        for (int i = 0; i < positions.Count / 2; i++)
-        {
-            var p = i / (positions.Count / 2f);
-            colors.Add(fromColor.X * p + toColor.X * (1 - p));
-            colors.Add(fromColor.Y * p + toColor.Y * (1 - p));
-            colors.Add(fromColor.Z * p + toColor.Z * (1 - p));
-        }
+        colorFactors.Clear();
+        for (int i = 0; i < positions.Count / 2; i++) 
+            colorFactors.Add(i / (positions.Count / 2f));
 
-        p.UpdateAttribute("color", colors.ToArray());
+        p.UpdateAttribute("colorFactor", colorFactors.ToArray());
 
         // update the draw count to tell the GPU to use the new values we just uploaded. we only need to do this if the
         // size of the data changes.
