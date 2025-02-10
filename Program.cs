@@ -4,14 +4,12 @@ using pixel_lab;
 
 var w = new Window();
 
-// quads lays out two triangles centered at (0, 0) as the basis geometry of each particle
-// uvs associates each corner with a UV coordinate to perform texture lookup 
 float[] quads =
 [
-    -0.25f, -0.25f,
-    -0.25f, 0.25f,
-    0.25f, -0.25f,
-    0.25f, 0.25f,
+    -0.5f, -0.5f,
+    -0.5f, 0.5f,
+    0.5f, -0.5f,
+    0.5f, 0.5f,
 ];
 float[] uvs =
 [
@@ -20,58 +18,54 @@ float[] uvs =
     1f, 0f,
     1f, 1f,
 ];
-
-// positions will move each particle to a place on the screen
-// colors will tint the texture
 List<float> positions = [];
+List<float> rotations = [];
+List<float> scales = [];
 List<float> colors = [];
 
-// random initial positions and colors
-var random = new Random();
-for (int i = 0; i < 10000; i++)
+Random rand = new Random();
+
+for (int i = 0; i < 10000; ++i)
 {
-    positions.Add((random.NextSingle() - 0.5f) * 2f);
-    positions.Add((random.NextSingle() - 0.5f) * 2f);
-    colors.Add(random.NextSingle());
-    colors.Add(random.NextSingle());
-    colors.Add(random.NextSingle());
+    positions.Add(rand.NextSingle() * 2.0f - 1.0f);
+    positions.Add(rand.NextSingle() * 2.0f - 1.0f);
+    rotations.Add((float)(rand.NextSingle() * Math.PI));
+    scales.Add(0.25f);
+    colors.Add(rand.NextSingle());
+    colors.Add(rand.NextSingle() * 0.5f);
+    colors.Add(rand.NextSingle() * 0.25f);
 }
 
 var p = new Pipeline();
 
+var t = Pipeline.Texture("particles/smoke_07.png");
+p.Uniform("particleTexture", t);
+
 p.ShaderFiles("vertex.glsl", "fragment.glsl");
 
-// we want to REUSE quads and uvs for each instance, so we DO NOT provide a divisor
-// they will draw "normally" as we have seen so far, for each instance
 p.Attribute("quad", quads, size: 2);
 p.Attribute("uv", uvs, size: 2);
-
-// we want to keep position and color attributes CONSTANT for each instance, so we DO provide a divisor of 1
-// the values will be the same for each vertex (combination of quad and uv) in each instance
 p.Attribute("position", positions.ToArray(), size: 2, divisor: 1);
+p.Attribute("rotation", rotations.ToArray(), size: 1, divisor: 1);
+p.Attribute("scale", scales.ToArray(), size: 1, divisor: 1);
 p.Attribute("color", colors.ToArray(), size: 3, divisor: 1);
 
-// load a texture and associate it with a uniform
-var texture = Pipeline.Texture("particles/star_06.png");
-p.Uniform("star", texture);
-
 p.PrimitiveType = PrimitiveType.TriangleStrip;
-
-// DrawCount should be the number of vertexes in the base geometry -- so we base it on quads  
 p.DrawCount = quads.Length / 2;
-// InstanceCount should be the number of COPIES of the base geometry with different attributes (taken from position and color) -- so we base it on positions
 p.InstanceCount = positions.Count / 2;
+p.BlendingFunction.SourceFactor = BlendingFactor.SrcAlpha;
+p.BlendingFunction.DestinationFactor = BlendingFactor.One;
 
 w.Render += t =>
 {
-    // update positions on the CPU each frames
-    for (int i = 0; i < positions.Count; i += 2)
+    p.Uniform("resolution", w.ClientSize);
+    p.Uniform("time", t);
+    
+    for (int i = 0; i < rotations.Count; i++)
     {
-        var tt = (float)i / positions.Count;
-        positions[i] = MathF.Sin(t + i * 0.3f) * tt;
-        positions[i+1] = MathF.Cos(t + i* 0.3f) * tt;
+        rotations[i] += 0.0025f;
     }
-    p.UpdateAttribute("position", positions.ToArray());
+    p.UpdateAttribute("rotation", rotations.ToArray());
     p.Draw();
 };
 
