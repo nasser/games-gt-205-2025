@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
@@ -50,6 +51,7 @@ public class Window : GameWindow
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
+        var sw = Stopwatch.StartNew();
         base.OnRenderFrame(args);
         _elapsed += (float)args.Time;
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
@@ -60,6 +62,9 @@ public class Window : GameWindow
         DrawToScreen();
         UniformTexture.ResetTextureUnitBindings();
         SwapBuffers();
+        var elapsedSeconds = sw.Elapsed.TotalSeconds;
+        var fps = 1.0f / elapsedSeconds;
+        this.Title = $"FPS: {Math.Round(fps)}";
     }
 
     private void DrawToScreen()
