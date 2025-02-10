@@ -25,6 +25,7 @@ public class Attribute
             GetAttributeInfo(program, location, out var reflectedSize, out var reflectedType);
             GL.VertexAttribPointer(location, Size ?? reflectedSize, Type ?? reflectedType, Normalized, Stride, Offset);
             GL.EnableVertexAttribArray(location);
+            GL.VertexAttribDivisor(location, Divisor);
         }
         catch (InvalidOperationException e)
         {
