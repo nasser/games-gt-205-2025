@@ -1,15 +1,17 @@
 #version 330 core
 uniform float time;
+uniform vec2 resolution;
 out vec4 FragColor;
 
 void main() {
-    float radius = 100.0;
+    float radius = 0.25;
     
-    // gl_FragCoord is the built-in OpenGL variable that stores the coordinate of the fragment in screen space 
-    vec2 position = gl_FragCoord.xy;
-
+    // gl_FragCoord is the built-in OpenGL variable that stores the coordinate of the fragment in screen space
+    // calculate position in NDC coordinates
+    vec2 position = gl_FragCoord.xy / resolution;
+    
     // length is a built-in function that returns the length of a vector
-    float distance = length(position);
+    float distance = length(position - vec2(0.5, 0.5));
 
     // if the distance is greater than the radius, set the color to yellow, otherwise set it to red
     if(distance > radius) {
