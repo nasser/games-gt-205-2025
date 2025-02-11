@@ -13,9 +13,6 @@ p.ShaderFiles("vertex.glsl", "fragment.glsl");
 
 p.Attribute("position", positions.ToArray(), size: 2);
 
-var brick = Pipeline.Texture("brick.jpg");
-p.Uniform("theTexture", brick);
-
 p.PrimitiveType = PrimitiveType.TriangleStrip;
 p.DrawCount = positions.Count / 2;
 
