@@ -161,6 +161,22 @@ public class Pipeline
 
     public Attribute Attribute(
         string name,
+        System.Numerics.Vector3[] data,
+        int? size = null,
+        VertexAttribPointerType? type = null,
+        bool normalized = false,
+        int stride = 0,
+        int offset = 0,
+        int divisor = 0,
+        BufferUsageHint usage = BufferUsageHint.StaticDraw)
+    {
+        var attribute = Attribute(name, GL.GenBuffer(), size, type, normalized, stride, offset, divisor);
+        attribute.Update(data, usage);
+        return attribute;
+    }
+
+    public Attribute Attribute(
+        string name,
         int vbo,
         int? size = null,
         VertexAttribPointerType? type = VertexAttribPointerType.Float,

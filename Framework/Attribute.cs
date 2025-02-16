@@ -1,3 +1,4 @@
+using System.Numerics;
 using OpenTK.Graphics.OpenGL4;
 
 namespace pixel_lab;
@@ -34,6 +35,12 @@ public class Attribute
     }
 
     public void Update(float[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
+    {
+        GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, usage);
+    }
+
+    public void Update(Vector3[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
     {
         GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
         GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, usage);
