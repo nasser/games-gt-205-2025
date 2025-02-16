@@ -42,7 +42,11 @@ public static class Common
         return LinkProgram(vertexShader, fragmentShader);
     }
 
-    public static (int fbo, int texture) InitializeFboAndTexture(int width = 1, int height = 1)
+    public static (int fbo, int texture) InitializeFboAndTexture(int width = 1, int height = 1,
+        TextureMinFilter minFilter = TextureMinFilter.Nearest,
+        TextureMagFilter magFilter = TextureMagFilter.Nearest,
+        TextureWrapMode wrapS = TextureWrapMode.Repeat,
+        TextureWrapMode wrapT = TextureWrapMode.Repeat)
     {
         var fbo = GL.GenFramebuffer();
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
@@ -51,8 +55,10 @@ public static class Common
         GL.BindTexture(TextureTarget.Texture2D, texture);
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, width, height, 0, PixelFormat.Rgb,
             PixelType.UnsignedByte, IntPtr.Zero);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)wrapS);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)wrapT);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
             TextureTarget.Texture2D, texture, 0);
 
