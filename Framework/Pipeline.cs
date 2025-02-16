@@ -222,6 +222,9 @@ public class Pipeline
     public void Uniform(string name, float value) =>
         _uniforms[name] = new UniformFloat { Name = name, Value = value };
 
+    public void Uniform(string name, Matrix4 value) =>
+        _uniforms[name] = new UniformMatrix4 { Name = name, Value = value };
+
     public void Uniform(string name, int value) =>
         _uniforms[name] = new UniformTexture { Name = name, Value = value };
 

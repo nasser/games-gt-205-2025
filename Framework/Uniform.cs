@@ -133,3 +133,18 @@ class UniformMatrix3 : Uniform
         }
     }
 }
+
+
+class UniformMatrix4 : Uniform
+{
+    public Matrix4 Value { get; init; }
+
+    public override void Upload(int program)
+    {
+        if (TryGetUniformLocation(program, out var location))
+        {
+            var matrix4 = Value;
+            GL.UniformMatrix4(location, false, ref matrix4);
+        }
+    }
+}
