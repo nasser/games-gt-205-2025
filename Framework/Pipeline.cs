@@ -5,6 +5,8 @@ using StbImageSharp;
 
 namespace pixel_lab;
 
+public record RenderTarget(int FrameBuffer, int Texture);
+
 public class Pipeline
 {
     public record BlendingFactors
@@ -109,6 +111,17 @@ public class Pipeline
 
         return handle;
     }
+
+    public static RenderTarget RenderTarget(int width = 1, int height = 1,
+        TextureMinFilter minFilter = TextureMinFilter.Nearest,
+        TextureMagFilter magFilter = TextureMagFilter.Nearest,
+        TextureWrapMode wrapS = TextureWrapMode.Repeat,
+        TextureWrapMode wrapT = TextureWrapMode.Repeat)
+    {
+        var (fbo, texture) = Common.InitializeFboAndTexture(width, height, minFilter, magFilter, wrapS, wrapT);
+        return new RenderTarget(fbo, texture);
+    }
+
 
     #region Shader
 
