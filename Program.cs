@@ -18,19 +18,25 @@ float[] uvs =
     1f, 0f,
     1f, 1f,
 ];
+List<float> lifespan = [];
+List<float> initialPositions = [];
 List<float> positions = [];
-List<float> rotations = [];
 List<float> scales = [];
 List<float> colors = [];
 
 Random rand = new Random();
 
-for (int i = 0; i < 10000; ++i)
+for (int i = 0; i < 1000; ++i)
 {
-    positions.Add(rand.NextSingle() * 2.0f - 1.0f);
-    positions.Add(rand.NextSingle() * 2.0f - 1.0f);
-    rotations.Add((float)(rand.NextSingle() * Math.PI));
-    scales.Add(0.25f);
+    lifespan.Add(rand.NextSingle());
+    var y = rand.NextSingle() * 2.0f - 1.0f;
+    var y1 = y + 1;
+    var x = y1 * y1 * 0.5f * (rand.NextSingle() * 2.0f - 1.0f);
+    initialPositions.Add(x);
+    initialPositions.Add(y);
+    positions.Add(0);
+    positions.Add(0);
+    scales.Add(rand.NextSingle() * 0.25f);
     colors.Add(rand.NextSingle());
     colors.Add(rand.NextSingle() * 0.5f);
     colors.Add(rand.NextSingle() * 0.25f);
@@ -46,7 +52,6 @@ p.ShaderFiles("vertex.glsl", "fragment.glsl");
 p.Attribute("quad", quads, size: 2);
 p.Attribute("uv", uvs, size: 2);
 p.Attribute("position", positions.ToArray(), size: 2, divisor: 1);
-p.Attribute("rotation", rotations.ToArray(), size: 1, divisor: 1);
 p.Attribute("scale", scales.ToArray(), size: 1, divisor: 1);
 p.Attribute("color", colors.ToArray(), size: 3, divisor: 1);
 
@@ -60,12 +65,18 @@ w.Render += t =>
 {
     p.Uniform("resolution", w.ClientSize);
     p.Uniform("time", t);
-    
-    for (int i = 0; i < rotations.Count; i++)
+    for (int i = 0; i < positions.Count; i += 2)
     {
-        rotations[i] += 0.0025f;
+        var particleIndex = i / 2;
+        var life = (t + lifespan[particleIndex]) % 1;
+        var y = initialPositions[i + 1] + life;
+        var y1 = y + 1;
+        var x = initialPositions[i] + y1 * y1 * 0.5f * (initialPositions[i] * 2.0f);
+        positions[i] = x;
+        positions[i + 1] = y;
     }
-    p.UpdateAttribute("rotation", rotations.ToArray());
+
+    p.UpdateAttribute("position", positions.ToArray());
     p.Draw();
 };
 
