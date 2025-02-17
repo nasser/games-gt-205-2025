@@ -6,5 +6,5 @@ out vec4 FragColor;
 
 void main() {
     vec4 textureColor = texture(particleTexture, uv_out);
-    FragColor = vec4(color_out * textureColor.rgb, textureColor.a * 0.5);
+    FragColor = vec4(color_out * textureColor.rgb, textureColor.a * 0.05);
 }
