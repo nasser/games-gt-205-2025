@@ -22,40 +22,64 @@ List<float> seeds = [];
 
 Random rand = new Random();
 
-for (int i = 0; i < 1000; ++i) 
+for (int i = 0; i < 1000; ++i)
     seeds.Add(rand.NextSingle());
 
-var p = new Pipeline();
+var firstPass = new Pipeline();
 
 var t = Pipeline.Texture("particles/smoke_07.png");
-p.Uniform("particleTexture", t);
+firstPass.Uniform("particleTexture", t);
 
-p.ShaderFiles("vertex.glsl", "fragment.glsl");
+firstPass.ShaderFiles("first-pass-vertex.glsl", "first-pass-fragment.glsl");
 
-p.Attribute("quad", quads, size: 2);
-p.Attribute("uv", uvs, size: 2);
-p.Attribute("seed", seeds.ToArray(), size: 1, divisor: 1);
+firstPass.Attribute("quad", quads, size: 2);
+firstPass.Attribute("uv", uvs, size: 2);
+firstPass.Attribute("seed", seeds.ToArray(), size: 1, divisor: 1);
 
-p.PrimitiveType = PrimitiveType.TriangleStrip;
-p.DrawCount = quads.Length / 2;
-p.InstanceCount = seeds.Count;
-p.BlendingFunction.SourceFactor = BlendingFactor.SrcAlpha;
-p.BlendingFunction.DestinationFactor = BlendingFactor.One;
+firstPass.PrimitiveType = PrimitiveType.TriangleStrip;
+firstPass.DrawCount = quads.Length / 2;
+firstPass.InstanceCount = seeds.Count;
+firstPass.BlendingFunction.SourceFactor = BlendingFactor.SrcAlpha;
+firstPass.BlendingFunction.DestinationFactor = BlendingFactor.One;
 
-p.Uniform("base_scale", 0.75f); // 0 - 1
-p.Uniform("spread", 0.125f); // 0 - 1
-p.Uniform("wiggle", 0.05f); // 0 - 1
-p.Uniform("from_color", new Vector3(0.65f, 0.4f, 0.2f)); // 0 - 1
-p.Uniform("to_color", new Vector3(1.0f, 1.0f, 1.0f)); // 0 - 1
-p.Uniform("smoke_ramp", 10f); // > 0
-p.Uniform("mouse_effect_size", 1f); // > 0
+firstPass.Uniform("base_scale", 0.75f); // 0 - 1
+firstPass.Uniform("spread", 0.125f); // 0 - 1
+firstPass.Uniform("wiggle", 0.05f); // 0 - 1
+firstPass.Uniform("from_color", new Vector3(0.65f, 0.4f, 0.2f)); // 0 - 1
+firstPass.Uniform("to_color", new Vector3(1.0f, 1.0f, 1.0f)); // 0 - 1
+firstPass.Uniform("smoke_ramp", 10f); // > 0
+firstPass.Uniform("mouse_effect_size", 1f); // > 0
+
+var target = Pipeline.RenderTarget(
+    width: w.ClientSize.X,
+    height: w.ClientSize.Y,
+    wrapS: TextureWrapMode.ClampToEdge,
+    wrapT: TextureWrapMode.ClampToEdge);
+
+float[] fullScreenTriangle =
+[
+    -1f, 3f,
+    -1f, -1f,
+    3f, -1f
+];
+var secondPass = new Pipeline();
+secondPass.ShaderFiles("second-pass-vertex.glsl", "second-pass-fragment.glsl");
+secondPass.Attribute("position", fullScreenTriangle, size: 2);
+secondPass.PrimitiveType = PrimitiveType.Triangles;
+secondPass.DrawCount = fullScreenTriangle.Length / 2;
 
 w.Render += t =>
 {
-    p.Uniform("resolution", w.ClientSize);
-    p.Uniform("mouse", w.MousePosition);
-    p.Uniform("time", t);
-    p.Draw();
+    firstPass.Uniform("resolution", w.ClientSize);
+    firstPass.Uniform("mouse", w.MousePosition);
+    firstPass.Uniform("time", t);
+    target.Clear();
+    firstPass.Draw(target.FrameBuffer);
+
+    secondPass.Uniform("resolution", w.ClientSize);
+    secondPass.Uniform("time", t);
+    secondPass.Uniform("renderedScene", target.Texture);
+    secondPass.Draw();
 };
 
 w.Run();
