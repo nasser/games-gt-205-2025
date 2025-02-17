@@ -5,7 +5,14 @@ using StbImageSharp;
 
 namespace pixel_lab;
 
-public record RenderTarget(int FrameBuffer, int Texture);
+public record RenderTarget(int FrameBuffer, int Texture)
+{
+    public void Clear()
+    {
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, FrameBuffer);
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+    }
+}
 
 public class Pipeline
 {
