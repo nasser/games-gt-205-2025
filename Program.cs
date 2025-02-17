@@ -48,10 +48,12 @@ p.Uniform("wiggle", 0.05f); // 0 - 1
 p.Uniform("from_color", new Vector3(0.65f, 0.4f, 0.2f)); // 0 - 1
 p.Uniform("to_color", new Vector3(1.0f, 1.0f, 1.0f)); // 0 - 1
 p.Uniform("smoke_ramp", 10f); // > 0
+p.Uniform("mouse_effect_size", 1f); // > 0
 
 w.Render += t =>
 {
     p.Uniform("resolution", w.ClientSize);
+    p.Uniform("mouse", w.MousePosition);
     p.Uniform("time", t);
     p.Draw();
 };
