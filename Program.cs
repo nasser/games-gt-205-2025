@@ -96,6 +96,45 @@ w.Render += t =>
     thirdPass.Uniform("resolution", w.ClientSize);
     thirdPass.Uniform("time", t);
     thirdPass.Uniform("renderedScene", target2.Texture);
+
+    // combines "curvature", "lineWidth", "lineContrast", and "verticalLine"
+    // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L180-L208
+    thirdPass.Uniform("uLine", new Vector4(
+        1f, // curvature
+        1f, // lineWidth
+        0.25f, // lineContrast
+        0f // verticalLine
+    ));
+
+    // combines "noise" and "noiseSize" 
+    // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L210-L222
+    thirdPass.Uniform("uNoise", new Vector2(
+        0.3f,
+        0f
+    ));
+
+    // combines "vignette", "vignettingAlpha" and "vignettingBlur"
+    // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L224-L243
+    thirdPass.Uniform("uVignette", new Vector3(
+        0.3f,
+        1f,
+        0.3f
+    ));
+
+    // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L103-L107
+    thirdPass.Uniform("uSeed", 0f);
+    thirdPass.Uniform("uDimensions", new Vector2(
+        w.ClientSize.X,
+        w.ClientSize.Y
+    ));
+    
+    // ??
+    thirdPass.Uniform("uInputSize", new Vector4(
+        w.ClientSize.X,
+        w.ClientSize.Y,
+        0f, // ??
+        0f // ??
+    ));
     thirdPass.Draw();
 };
 
