@@ -25,38 +25,38 @@ Random rand = new Random();
 for (int i = 0; i < 1000; ++i)
     seeds.Add(rand.NextSingle());
 
-var firstPass = new Pipeline();
+var scenePass = new Pipeline();
 
 var t = Pipeline.Texture("particles/smoke_07.png");
-firstPass.Uniform("particleTexture", t);
+scenePass.Uniform("particleTexture", t);
 
-firstPass.ShaderFiles("first-pass-vertex.glsl", "first-pass-fragment.glsl");
+scenePass.ShaderFiles("first-pass-vertex.glsl", "first-pass-fragment.glsl");
 
-firstPass.Attribute("quad", quads, size: 2);
-firstPass.Attribute("uv", uvs, size: 2);
-firstPass.Attribute("seed", seeds.ToArray(), size: 1, divisor: 1);
+scenePass.Attribute("quad", quads, size: 2);
+scenePass.Attribute("uv", uvs, size: 2);
+scenePass.Attribute("seed", seeds.ToArray(), size: 1, divisor: 1);
 
-firstPass.PrimitiveType = PrimitiveType.TriangleStrip;
-firstPass.DrawCount = quads.Length / 2;
-firstPass.InstanceCount = seeds.Count;
-firstPass.BlendingFunction.SourceFactor = BlendingFactor.SrcAlpha;
-firstPass.BlendingFunction.DestinationFactor = BlendingFactor.One;
+scenePass.PrimitiveType = PrimitiveType.TriangleStrip;
+scenePass.DrawCount = quads.Length / 2;
+scenePass.InstanceCount = seeds.Count;
+scenePass.BlendingFunction.SourceFactor = BlendingFactor.SrcAlpha;
+scenePass.BlendingFunction.DestinationFactor = BlendingFactor.One;
 
-firstPass.Uniform("base_scale", 0.75f); // 0 - 1
-firstPass.Uniform("spread", 0.125f); // 0 - 1
-firstPass.Uniform("wiggle", 0.05f); // 0 - 1
-firstPass.Uniform("from_color", new Vector3(0.65f, 0.4f, 0.2f)); // 0 - 1
-firstPass.Uniform("to_color", new Vector3(1.0f, 1.0f, 1.0f)); // 0 - 1
-firstPass.Uniform("smoke_ramp", 10f); // > 0
-firstPass.Uniform("mouse_effect_size", 1f); // > 0
+scenePass.Uniform("base_scale", 0.75f); // 0 - 1
+scenePass.Uniform("spread", 0.125f); // 0 - 1
+scenePass.Uniform("wiggle", 0.05f); // 0 - 1
+scenePass.Uniform("from_color", new Vector3(0.65f, 0.4f, 0.2f)); // 0 - 1
+scenePass.Uniform("to_color", new Vector3(1.0f, 1.0f, 1.0f)); // 0 - 1
+scenePass.Uniform("smoke_ramp", 10f); // > 0
+scenePass.Uniform("mouse_effect_size", 1f); // > 0
 
-var target = Pipeline.RenderTarget(
+var sceneRenderTarget = Pipeline.RenderTarget(
     width: w.ClientSize.X,
     height: w.ClientSize.Y,
     wrapS: TextureWrapMode.ClampToEdge,
     wrapT: TextureWrapMode.ClampToEdge);
 
-var target2 = Pipeline.RenderTarget(
+var bloomTarget = Pipeline.RenderTarget(
     width: w.ClientSize.X,
     height: w.ClientSize.Y,
     wrapS: TextureWrapMode.ClampToEdge,
@@ -68,38 +68,38 @@ float[] fullScreenTriangle =
     -1f, -1f,
     3f, -1f
 ];
-var secondPass = new Pipeline();
-secondPass.ShaderFiles("second-pass-vertex.glsl", "second-pass-fragment.glsl");
-secondPass.Attribute("position", fullScreenTriangle, size: 2);
-secondPass.PrimitiveType = PrimitiveType.Triangles;
-secondPass.DrawCount = fullScreenTriangle.Length / 2;
+var bloomPass = new Pipeline();
+bloomPass.ShaderFiles("second-pass-vertex.glsl", "second-pass-fragment.glsl");
+bloomPass.Attribute("position", fullScreenTriangle, size: 2);
+bloomPass.PrimitiveType = PrimitiveType.Triangles;
+bloomPass.DrawCount = fullScreenTriangle.Length / 2;
 
-var thirdPass = new Pipeline();
-thirdPass.ShaderFiles("second-pass-vertex.glsl", "third-pass-fragment.glsl");
-thirdPass.Attribute("position", fullScreenTriangle, size: 2);
-thirdPass.PrimitiveType = PrimitiveType.Triangles;
-thirdPass.DrawCount = fullScreenTriangle.Length / 2;
+var crtPass = new Pipeline();
+crtPass.ShaderFiles("second-pass-vertex.glsl", "third-pass-fragment.glsl");
+crtPass.Attribute("position", fullScreenTriangle, size: 2);
+crtPass.PrimitiveType = PrimitiveType.Triangles;
+crtPass.DrawCount = fullScreenTriangle.Length / 2;
 
 w.Render += t =>
 {
-    firstPass.Uniform("resolution", w.ClientSize);
-    firstPass.Uniform("mouse", w.MousePosition);
-    firstPass.Uniform("time", t);
-    target.Clear();
-    firstPass.Draw(target.FrameBuffer);
+    scenePass.Uniform("resolution", w.ClientSize);
+    scenePass.Uniform("mouse", w.MousePosition);
+    scenePass.Uniform("time", t);
+    sceneRenderTarget.Clear();
+    scenePass.Draw(sceneRenderTarget.FrameBuffer);
 
-    secondPass.Uniform("resolution", w.ClientSize);
-    secondPass.Uniform("time", t);
-    secondPass.Uniform("renderedScene", target.Texture);
-    secondPass.Draw(target2.FrameBuffer);
+    bloomPass.Uniform("resolution", w.ClientSize);
+    bloomPass.Uniform("time", t);
+    bloomPass.Uniform("renderedScene", sceneRenderTarget.Texture);
+    bloomPass.Draw(bloomTarget.FrameBuffer);
 
-    thirdPass.Uniform("resolution", w.ClientSize);
-    thirdPass.Uniform("time", t);
-    thirdPass.Uniform("renderedScene", target2.Texture);
+    crtPass.Uniform("resolution", w.ClientSize);
+    crtPass.Uniform("time", t);
+    crtPass.Uniform("renderedScene", bloomTarget.Texture);
 
     // combines "curvature", "lineWidth", "lineContrast", and "verticalLine"
     // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L180-L208
-    thirdPass.Uniform("uLine", new Vector4(
+    crtPass.Uniform("uLine", new Vector4(
         1f, // curvature
         1f, // lineWidth
         0.25f, // lineContrast
@@ -108,34 +108,34 @@ w.Render += t =>
 
     // combines "noise" and "noiseSize" 
     // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L210-L222
-    thirdPass.Uniform("uNoise", new Vector2(
+    crtPass.Uniform("uNoise", new Vector2(
         0.3f,
         0f
     ));
 
     // combines "vignette", "vignettingAlpha" and "vignettingBlur"
     // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L224-L243
-    thirdPass.Uniform("uVignette", new Vector3(
+    crtPass.Uniform("uVignette", new Vector3(
         0.3f,
         1f,
         0.3f
     ));
 
     // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L103-L107
-    thirdPass.Uniform("uSeed", 0f);
-    thirdPass.Uniform("uDimensions", new Vector2(
+    crtPass.Uniform("uSeed", 0f);
+    crtPass.Uniform("uDimensions", new Vector2(
         w.ClientSize.X,
         w.ClientSize.Y
     ));
     
     // ??
-    thirdPass.Uniform("uInputSize", new Vector4(
+    crtPass.Uniform("uInputSize", new Vector4(
         w.ClientSize.X,
         w.ClientSize.Y,
         0f, // ??
         0f // ??
     ));
-    thirdPass.Draw();
+    crtPass.Draw();
 };
 
 w.Run();
