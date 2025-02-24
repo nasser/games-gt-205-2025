@@ -30,7 +30,7 @@ var scenePass = new Pipeline();
 var t = Pipeline.Texture("particles/smoke_07.png");
 scenePass.Uniform("particleTexture", t);
 
-scenePass.ShaderFiles("first-pass-vertex.glsl", "first-pass-fragment.glsl");
+scenePass.ShaderFiles("scene.vert.glsl", "scene.frag.glsl");
 
 scenePass.Attribute("quad", quads, size: 2);
 scenePass.Attribute("uv", uvs, size: 2);
@@ -69,13 +69,13 @@ float[] fullScreenTriangle =
     3f, -1f
 ];
 var bloomPass = new Pipeline();
-bloomPass.ShaderFiles("second-pass-vertex.glsl", "second-pass-fragment.glsl");
+bloomPass.ShaderFiles("post-process.vert.glsl", "bloom.frag.glsl");
 bloomPass.Attribute("position", fullScreenTriangle, size: 2);
 bloomPass.PrimitiveType = PrimitiveType.Triangles;
 bloomPass.DrawCount = fullScreenTriangle.Length / 2;
 
 var crtPass = new Pipeline();
-crtPass.ShaderFiles("second-pass-vertex.glsl", "third-pass-fragment.glsl");
+crtPass.ShaderFiles("post-process.vert.glsl", "crt.frag.glsl");
 crtPass.Attribute("position", fullScreenTriangle, size: 2);
 crtPass.PrimitiveType = PrimitiveType.Triangles;
 crtPass.DrawCount = fullScreenTriangle.Length / 2;
