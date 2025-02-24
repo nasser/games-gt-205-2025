@@ -56,6 +56,12 @@ var target = Pipeline.RenderTarget(
     wrapS: TextureWrapMode.ClampToEdge,
     wrapT: TextureWrapMode.ClampToEdge);
 
+var target2 = Pipeline.RenderTarget(
+    width: w.ClientSize.X,
+    height: w.ClientSize.Y,
+    wrapS: TextureWrapMode.ClampToEdge,
+    wrapT: TextureWrapMode.ClampToEdge);
+
 float[] fullScreenTriangle =
 [
     -1f, 3f,
@@ -68,6 +74,12 @@ secondPass.Attribute("position", fullScreenTriangle, size: 2);
 secondPass.PrimitiveType = PrimitiveType.Triangles;
 secondPass.DrawCount = fullScreenTriangle.Length / 2;
 
+var thirdPass = new Pipeline();
+thirdPass.ShaderFiles("second-pass-vertex.glsl", "third-pass-fragment.glsl");
+thirdPass.Attribute("position", fullScreenTriangle, size: 2);
+thirdPass.PrimitiveType = PrimitiveType.Triangles;
+thirdPass.DrawCount = fullScreenTriangle.Length / 2;
+
 w.Render += t =>
 {
     firstPass.Uniform("resolution", w.ClientSize);
@@ -79,7 +91,12 @@ w.Render += t =>
     secondPass.Uniform("resolution", w.ClientSize);
     secondPass.Uniform("time", t);
     secondPass.Uniform("renderedScene", target.Texture);
-    secondPass.Draw();
+    secondPass.Draw(target2.FrameBuffer);
+
+    thirdPass.Uniform("resolution", w.ClientSize);
+    thirdPass.Uniform("time", t);
+    thirdPass.Uniform("renderedScene", target2.Texture);
+    thirdPass.Draw();
 };
 
 w.Run();
