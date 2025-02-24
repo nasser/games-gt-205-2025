@@ -85,9 +85,8 @@ aberrationPass.ShaderFiles("post-process.vert.glsl", "aberration.frag.glsl");
 aberrationPass.Attribute("position", fullScreenTriangle, size: 2);
 aberrationPass.PrimitiveType = PrimitiveType.Triangles;
 aberrationPass.DrawCount = fullScreenTriangle.Length / 2;
-aberrationPass.Uniform("uRed", new Vector2(0.2f, 0.2f));
-aberrationPass.Uniform("uGreen", new Vector2(0.2f, 0.2f));
-aberrationPass.Uniform("uBlue", new Vector2(0.2f, 0.2f));
+aberrationPass.Uniform("uRed", new Vector2(0.08f, 0.02f));
+aberrationPass.Uniform("uBlue", new Vector2(0.07f, 0.03f));
 
 var crtPass = new Pipeline();
 crtPass.ShaderFiles("post-process.vert.glsl", "crt.frag.glsl");
