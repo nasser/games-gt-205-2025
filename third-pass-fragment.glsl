@@ -5,15 +5,21 @@ uniform vec2 resolution;
 uniform sampler2D renderedScene;
 
 // from https://github.com/pixijs/filters/blob/main/src/crt/crt.frag
-in vec2 vTextureCoord;
-out vec4 finalColor;
 
-uniform sampler2D uTexture;
+// used uv calculated from gl_FragCoord
+// in vec2 vTextureCoord; 
+
+// renamed 'FragColor'
+// out vec4 finalColor; 
+
+// renamed 'renderedScene'
+// uniform sampler2D uTexture; 
 uniform vec4 uLine;
 uniform vec2 uNoise;
 uniform vec3 uVignette;
 uniform float uSeed;
-uniform float uTime;
+// renamed 'time'
+// uniform float uTime;
 uniform vec2 uDimensions;
 
 uniform vec4 uInputSize;
@@ -57,7 +63,7 @@ vec3 interlaceLines(vec3 co, vec2 coord)
     vec2 uv = dir * k;
     float v = verticalLine > 0.5 ? uv.x * uDimensions.x : uv.y * uDimensions.y;
     v *= min(1.0, 2.0 / lineWidth ) / _c;
-    float j = 1. + cos(v * 1.2 - uTime) * 0.5 * lineContrast;
+    float j = 1. + cos(v * 1.2 - time) * 0.5 * lineContrast;
     color *= j;
 
     float segment = verticalLine > 0.5 ? mod((dir.x + .5) * uDimensions.x, 4.) : mod((dir.y + .5) * uDimensions.y, 4.);
@@ -71,23 +77,23 @@ void main() {
     FragColor = texture(renderedScene, uv);
 
     // from https://github.com/pixijs/filters/blob/main/src/crt/crt.frag
-    finalColor = texture(uTexture, vTextureCoord);
-    vec2 coord = vTextureCoord * uInputSize.xy / uDimensions;
+    // FragColor = texture(renderedScene, uv);
+    vec2 coord = uv * uInputSize.xy / uDimensions;
 
     if (uNoise[0] > 0.0 && uNoise[1] > 0.0)
     {
-        float n = noise(vTextureCoord);
-        finalColor += vec4(n, n, n, finalColor.a);
+        float n = noise(uv);
+        FragColor += vec4(n, n, n, FragColor.a);
     }
 
     if (uVignette[0] > 0.)
     {
-        float v = vignette(finalColor.rgb, coord);
-        finalColor *= vec4(v, v, v, finalColor.a);
+        float v = vignette(FragColor.rgb, coord);
+        FragColor *= vec4(v, v, v, FragColor.a);
     }
 
     if (uLine[1] > 0.0)
     {
-        finalColor = vec4(interlaceLines(finalColor.rgb, vTextureCoord), finalColor.a);  
+        FragColor = vec4(interlaceLines(FragColor.rgb, uv), FragColor.a);  
     }
 }
