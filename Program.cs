@@ -62,6 +62,12 @@ var bloomTarget = Pipeline.RenderTarget(
     wrapS: TextureWrapMode.ClampToEdge,
     wrapT: TextureWrapMode.ClampToEdge);
 
+var aberrationTarget = Pipeline.RenderTarget(
+    width: w.ClientSize.X,
+    height: w.ClientSize.Y,
+    wrapS: TextureWrapMode.ClampToEdge,
+    wrapT: TextureWrapMode.ClampToEdge);
+
 float[] fullScreenTriangle =
 [
     -1f, 3f,
@@ -73,6 +79,15 @@ bloomPass.ShaderFiles("post-process.vert.glsl", "bloom.frag.glsl");
 bloomPass.Attribute("position", fullScreenTriangle, size: 2);
 bloomPass.PrimitiveType = PrimitiveType.Triangles;
 bloomPass.DrawCount = fullScreenTriangle.Length / 2;
+
+var aberrationPass = new Pipeline();
+aberrationPass.ShaderFiles("post-process.vert.glsl", "aberration.frag.glsl");
+aberrationPass.Attribute("position", fullScreenTriangle, size: 2);
+aberrationPass.PrimitiveType = PrimitiveType.Triangles;
+aberrationPass.DrawCount = fullScreenTriangle.Length / 2;
+aberrationPass.Uniform("uRed", new Vector2(0.2f, 0.2f));
+aberrationPass.Uniform("uGreen", new Vector2(0.2f, 0.2f));
+aberrationPass.Uniform("uBlue", new Vector2(0.2f, 0.2f));
 
 var crtPass = new Pipeline();
 crtPass.ShaderFiles("post-process.vert.glsl", "crt.frag.glsl");
@@ -112,9 +127,14 @@ w.Render += t =>
     bloomPass.Uniform("renderedScene", sceneRenderTarget.Texture);
     bloomPass.Draw(bloomTarget.FrameBuffer);
 
+    aberrationPass.Uniform("resolution", w.ClientSize);
+    aberrationPass.Uniform("time", t);
+    aberrationPass.Uniform("renderedScene", bloomTarget.Texture);
+    aberrationPass.Draw(aberrationTarget.FrameBuffer);
+
     crtPass.Uniform("resolution", w.ClientSize);
     crtPass.Uniform("time", t);
-    crtPass.Uniform("renderedScene", bloomTarget.Texture);
+    crtPass.Uniform("renderedScene", aberrationTarget.Texture);
     
     crtPass.Draw();
 };
