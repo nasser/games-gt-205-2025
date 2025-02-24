@@ -68,6 +68,12 @@ var aberrationTarget = Pipeline.RenderTarget(
     wrapS: TextureWrapMode.ClampToEdge,
     wrapT: TextureWrapMode.ClampToEdge);
 
+var vhsTarget = Pipeline.RenderTarget(
+    width: w.ClientSize.X,
+    height: w.ClientSize.Y,
+    wrapS: TextureWrapMode.ClampToEdge,
+    wrapT: TextureWrapMode.ClampToEdge);
+
 float[] fullScreenTriangle =
 [
     -1f, 3f,
@@ -87,6 +93,12 @@ aberrationPass.PrimitiveType = PrimitiveType.Triangles;
 aberrationPass.DrawCount = fullScreenTriangle.Length / 2;
 aberrationPass.Uniform("uRed", new Vector2(0.08f, 0.02f));
 aberrationPass.Uniform("uBlue", new Vector2(0.07f, 0.03f));
+
+var vhsPass = new Pipeline();
+vhsPass.ShaderFiles("post-process.vert.glsl", "vhs.frag.glsl");
+vhsPass.Attribute("position", fullScreenTriangle, size: 2);
+vhsPass.PrimitiveType = PrimitiveType.Triangles;
+vhsPass.DrawCount = fullScreenTriangle.Length / 2;
 
 var crtPass = new Pipeline();
 crtPass.ShaderFiles("post-process.vert.glsl", "crt.frag.glsl");
@@ -131,9 +143,14 @@ w.Render += t =>
     aberrationPass.Uniform("renderedScene", bloomTarget.Texture);
     aberrationPass.Draw(aberrationTarget.FrameBuffer);
 
+    vhsPass.Uniform("resolution", w.ClientSize);
+    vhsPass.Uniform("time", t);
+    vhsPass.Uniform("renderedScene", bloomTarget.Texture);
+    vhsPass.Draw(vhsTarget.FrameBuffer);
+
     crtPass.Uniform("resolution", w.ClientSize);
     crtPass.Uniform("time", t);
-    crtPass.Uniform("renderedScene", aberrationTarget.Texture);
+    crtPass.Uniform("renderedScene", vhsTarget.Texture);
     
     crtPass.Draw();
 };

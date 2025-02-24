@@ -1,4 +1,12 @@
+#version 330 core
 // adapted from https://www.shadertoy.com/view/Ms3XWH
+
+// added our own uniforms and out
+out vec4 FragColor;
+uniform float time;
+uniform vec2 resolution;
+uniform sampler2D renderedScene;
+
 const float range = 0.05;
 const float noiseQuality = 250.0;
 const float noiseIntensity = 0.0088;
@@ -22,12 +30,12 @@ float verticalBar(float pos, float uvY, float offset)
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-	vec2 uv = fragCoord.xy / iResolution.xy;
+	vec2 uv = fragCoord.xy / resolution.xy;
     
     for (float i = 0.0; i < 0.71; i += 0.1313)
     {
-        float d = mod(iTime * i, 1.7);
-        float o = sin(1.0 - tan(iTime * 0.24 * i));
+        float d = mod(time * i, 1.7);
+        float o = sin(1.0 - tan(time * 0.24 * i));
     	o *= offsetIntensity;
         uv.x += verticalBar(d, uv.y, o);
     }
@@ -35,16 +43,20 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float uvY = uv.y;
     uvY *= noiseQuality;
     uvY = float(int(uvY)) * (1.0 / noiseQuality);
-    float noise = rand(vec2(iTime * 0.00001, uvY));
+    float noise = rand(vec2(time * 0.00001, uvY));
     uv.x += noise * noiseIntensity;
 
-    vec2 offsetR = vec2(0.006 * sin(iTime), 0.0) * colorOffsetIntensity;
-    vec2 offsetG = vec2(0.0073 * (cos(iTime * 0.97)), 0.0) * colorOffsetIntensity;
+    vec2 offsetR = vec2(0.006 * sin(time), 0.0) * colorOffsetIntensity;
+    vec2 offsetG = vec2(0.0073 * (cos(time * 0.97)), 0.0) * colorOffsetIntensity;
     
-    float r = texture(iChannel0, uv + offsetR).r;
-    float g = texture(iChannel0, uv + offsetG).g;
-    float b = texture(iChannel0, uv).b;
+    float r = texture(renderedScene, uv + offsetR).r;
+    float g = texture(renderedScene, uv + offsetG).g;
+    float b = texture(renderedScene, uv).b;
 
     vec4 tex = vec4(r, g, b, 1.0);
     fragColor = tex;
+}
+
+void main(void) {
+    mainImage(FragColor, gl_FragCoord.xy);
 }
