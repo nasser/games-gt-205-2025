@@ -80,6 +80,25 @@ crtPass.Attribute("position", fullScreenTriangle, size: 2);
 crtPass.PrimitiveType = PrimitiveType.Triangles;
 crtPass.DrawCount = fullScreenTriangle.Length / 2;
 
+// combines "curvature", "lineWidth", "lineContrast", and "verticalLine"
+// https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L180-L208
+crtPass.Uniform("uLine", new Vector4(1f, 1f, 0.25f, 0f));
+
+// combines "noise" and "noiseSize" 
+// https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L210-L222
+crtPass.Uniform("uNoise", new Vector2(0.3f, 0f));
+
+// combines "vignette", "vignettingAlpha" and "vignettingBlur"
+// https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L224-L243
+crtPass.Uniform("uVignette", new Vector3(0.3f, 1f, 0.3f));
+
+// https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L103-L107
+crtPass.Uniform("uSeed", 0f);
+crtPass.Uniform("uDimensions", new Vector2(w.ClientSize.X, w.ClientSize.Y));
+    
+// ??
+crtPass.Uniform("uInputSize", new Vector4(w.ClientSize.X, w.ClientSize.Y, 0f, 0f));
+
 w.Render += t =>
 {
     scenePass.Uniform("resolution", w.ClientSize);
@@ -96,45 +115,7 @@ w.Render += t =>
     crtPass.Uniform("resolution", w.ClientSize);
     crtPass.Uniform("time", t);
     crtPass.Uniform("renderedScene", bloomTarget.Texture);
-
-    // combines "curvature", "lineWidth", "lineContrast", and "verticalLine"
-    // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L180-L208
-    crtPass.Uniform("uLine", new Vector4(
-        1f, // curvature
-        1f, // lineWidth
-        0.25f, // lineContrast
-        0f // verticalLine
-    ));
-
-    // combines "noise" and "noiseSize" 
-    // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L210-L222
-    crtPass.Uniform("uNoise", new Vector2(
-        0.3f,
-        0f
-    ));
-
-    // combines "vignette", "vignettingAlpha" and "vignettingBlur"
-    // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L224-L243
-    crtPass.Uniform("uVignette", new Vector3(
-        0.3f,
-        1f,
-        0.3f
-    ));
-
-    // https://github.com/pixijs/filters/blob/8276b6f9baf0685b46bae1c731cd8d0388067371/src/crt/CRTFilter.ts#L103-L107
-    crtPass.Uniform("uSeed", 0f);
-    crtPass.Uniform("uDimensions", new Vector2(
-        w.ClientSize.X,
-        w.ClientSize.Y
-    ));
     
-    // ??
-    crtPass.Uniform("uInputSize", new Vector4(
-        w.ClientSize.X,
-        w.ClientSize.Y,
-        0f, // ??
-        0f // ??
-    ));
     crtPass.Draw();
 };
 
