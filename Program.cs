@@ -6,64 +6,41 @@ using Window = pixel_lab.Window;
 
 var w = new Window();
 
-float[] positions =
-[
-    // Front face
-    -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.25f, 0.5f, 0.25f,
-    -0.5f, -0.5f, 0.5f, 0.25f, 0.5f, 0.25f, -0.25f, 0.5f, 0.25f,
-
-    // Right face
-    0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.25f, 0.5f, -0.25f,
-    0.5f, -0.5f, 0.5f, 0.25f, 0.5f, -0.25f, 0.25f, 0.5f, 0.25f,
-
-    // Back face
-    0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.25f, 0.5f, -0.25f,
-    0.5f, -0.5f, -0.5f, -0.25f, 0.5f, -0.25f, 0.25f, 0.5f, -0.25f,
-
-    // Left face
-    -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.25f, 0.5f, 0.25f,
-    -0.5f, -0.5f, -0.5f, -0.25f, 0.5f, 0.25f, -0.25f, 0.5f, -0.25f,
-
-    // Top face
-    -0.25f, 0.5f, 0.25f, 0.25f, 0.5f, 0.25f, 0.25f, 0.5f, -0.25f,
-    -0.25f, 0.5f, 0.25f, 0.25f, 0.5f, -0.25f, -0.25f, 0.5f, -0.25f,
-
-    // Bottom face
-    -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f,
-    -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f
-];
+var model = SharpGLTF.Schema2.ModelRoot.Load(Watchers.FindFile("helios_vaporwave_bust.glb"));
+var positions = model.LogicalMeshes[0].Primitives[0].GetVertexAccessor("POSITION").AsVector3Array().ToArray();
+var normals = model.LogicalMeshes[0].Primitives[0].GetVertexAccessor("NORMAL").AsVector3Array().ToArray();
+var indices = model.LogicalMeshes[0].Primitives[0].GetIndices().ToArray();
 
 var p = new Pipeline();
 
 p.ShaderFiles("vertex.glsl", "fragment.glsl");
-
 p.Attribute("position", positions, size: 3);
+p.Attribute("normal", normals, size: 3);
+p.Indexes = indices;
 
-p.PrimitiveType = PrimitiveType.LineLoop;
-p.DrawCount = positions.Length / 3;
+p.PrimitiveType = PrimitiveType.Triangles;
+p.DrawCount = indices.Length;
 
-var cameraPosition = new Vector3(0, 0, 0);
-var cameraRotation = new Vector3(0, 0, 0);
+p.Uniform("lightPos", new Vector3(8, 8, 8));
+p.Uniform("lightColor", new Vector3(1, 1, 1));
 
-var speed = 0.01f;
+p.Uniform("view",
+    Matrix4.LookAt(new Vector3(15, 2, 15), new Vector3(0, 0, 0), new Vector3(0, 1, 0)));
 
 w.Render += t =>
 {
-    p.Uniform("model", Matrix4.CreateRotationY(0) * Matrix4.CreateTranslation(0, 0, 0));
-    // p.Uniform("projection", Matrix4.CreatePerspectiveFieldOfView(MathF.PI / 3, (float)w.ClientSize.X / w.ClientSize.Y, 0.1f, 100f));
-    if(w.KeyboardState.IsKeyDown(Keys.W))
-        cameraPosition += new Vector3(0, 0, -1) * speed;
-    if(w.KeyboardState.IsKeyDown(Keys.S))
-        cameraPosition += new Vector3(0, 0, 1) * speed;
-    if(w.KeyboardState.IsKeyDown(Keys.A))
-        cameraPosition += new Vector3(-1, 0, 0) * speed;
-    if(w.KeyboardState.IsKeyDown(Keys.D))
-        cameraPosition += new Vector3(1, 0, 0) * speed;
-    cameraRotation = new Vector3((float)w.MousePosition.X / w.ClientSize.X, 0, 0);
-    p.Uniform("view", (Matrix4.CreateRotationY(-cameraRotation.X) * Matrix4.CreateTranslation(cameraPosition)).Inverted());
-    // p.Uniform("view", Matrix4.LookAt(new Vector3(MathF.Cos(t)* 15, 2, MathF.Sin(t) * 2), new Vector3(0, 0, 0), new Vector3(0, 1, 0)));
-    // p.Uniform("projection", Matrix4.CreatePerspectiveFieldOfView(MathF.PI / 3, (float)w.ClientSize.X / w.ClientSize.Y, 0.1f, 100f));
-    p.Uniform("projection", Matrix4.CreateOrthographic(2f, 2f, 0.1f, 20f));
+    p.Uniform("model",
+        Matrix4.CreateRotationX(-MathF.PI / 2)
+        * Matrix4.CreateTranslation(0, -10, 0)
+        * Matrix4.CreateScale(0.25f)
+        * Matrix4.CreateRotationY(MathF.PI / 2 * t));
+
+    p.Uniform("projection",
+        Matrix4.CreatePerspectiveFieldOfView(
+            MathF.PI / 8f,
+            (float)w.ClientSize.X / w.ClientSize.Y,
+            0.1f,
+            1000f));
     p.Draw();
 };
 
