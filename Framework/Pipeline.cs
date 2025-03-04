@@ -88,7 +88,6 @@ public class Pipeline
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
         GL.BindVertexArray(_vao.Value);
-        GL.UseProgram(_program.Value);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GL.Viewport(0, 0, Window.Instance.Resolution.X, Window.Instance.Resolution.Y);
          
