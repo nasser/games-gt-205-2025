@@ -43,7 +43,7 @@ public class Attribute
     public void Update(Vector3[] data, BufferUsageHint usage = BufferUsageHint.StaticDraw)
     {
         GL.BindBuffer(BufferTarget.ArrayBuffer, Vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float), data, usage);
+        GL.BufferData(BufferTarget.ArrayBuffer, data.Length * sizeof(float) * 3, data, usage);
     }
 
     static void GetAttributeInfo(int program, int location, out int size, out VertexAttribPointerType type)
