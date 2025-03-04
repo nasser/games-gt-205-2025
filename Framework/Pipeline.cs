@@ -23,6 +23,7 @@ public class Pipeline
     }
 
     private int? _vao;
+    private int? _ebo;
     private int? _program;
     private int? _lastGoodProgram;
 
@@ -93,7 +94,16 @@ public class Pipeline
          
         GL.BlendFunc(BlendingFunction.SourceFactor, BlendingFunction.DestinationFactor);
 
-        GL.DrawArraysInstanced(PrimitiveType, DrawStart, DrawCount, InstanceCount);
+        if (_ebo.HasValue)
+        {
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo.Value);
+            GL.DrawElementsInstanced(PrimitiveType, DrawCount, DrawElementsType.UnsignedInt, IntPtr.Zero,
+                InstanceCount);
+        }
+        else
+        {
+            GL.DrawArraysInstanced(PrimitiveType, DrawStart, DrawCount, InstanceCount);
+        }
     }
 
     public static int Texture(string path,
@@ -159,6 +169,22 @@ public class Pipeline
         _program = null;
     }
 
+    #endregion
+
+    #region indexed rendering
+
+    public uint[] Indexes
+    {
+        set
+        {
+            if (!_ebo.HasValue)
+                _ebo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo.Value);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, value.Length * sizeof(uint), value,
+                BufferUsageHint.StaticDraw);
+        }
+    }
+    
     #endregion
 
     #region Attributes
